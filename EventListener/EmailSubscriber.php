@@ -55,8 +55,6 @@ class EmailSubscriber extends CommonSubscriber
             return;
         }
 
-        $email_id = $email->getId();
-
         $content = str_replace('{extendedplugin}', 'world!', $content);
         $utm_campaign = $utm_source = $this->factory->getParameter('utm_source');
         $utm_content = '';
