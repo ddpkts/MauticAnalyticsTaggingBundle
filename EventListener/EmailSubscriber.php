@@ -10,12 +10,14 @@ use Mautic\EmailBundle\Event\EmailSendEvent;
 /**
  * Class EmailSubscriber
  */
-class EmailSubscriber extends CommonSubscriber {
+class EmailSubscriber extends CommonSubscriber
+{
 
     /**
      * @return array
      */
-    static public function getSubscribedEvents() {
+    public static function getSubscribedEvents()
+    {
         return array(
             EmailEvents::EMAIL_ON_BUILD => array('onEmailBuild', 0),
             EmailEvents::EMAIL_ON_SEND => array('onEmailGenerate', 0),
@@ -28,7 +30,8 @@ class EmailSubscriber extends CommonSubscriber {
      *
      * @param EmailBuilderEvent $event
      */
-    public function onEmailBuild(EmailBuilderEvent $event) {
+    public function onEmailBuild(EmailBuilderEvent $event)
+    {
 
     }
 
@@ -37,16 +40,21 @@ class EmailSubscriber extends CommonSubscriber {
      *
      * @param EmailSendEvent $event
      */
-    public function onEmailGenerate(EmailSendEvent $event) {
+    public function onEmailGenerate(EmailSendEvent $event)
+    {
 
         $active = $this->factory->getParameter('active');
-        if (!$active)
+        if (!$active) {
             return;
+        }
         // Get content
         $content = $event->getContent();
         $email = $event->getEmail();
-        if (empty($email))
+
+        if (empty($email)) {
             return;
+        }
+
         $email_id = $email->getId();
 
         $content = str_replace('{extendedplugin}', 'world!', $content);
@@ -59,36 +67,36 @@ class EmailSubscriber extends CommonSubscriber {
 
 
         switch ($utm_campaign_type) :
-          case 'name':
-            $utm_campaign = $email->getName();
-            break;
-          case 'subject':
-            $utm_campaign = $email->getSubject();
-            break;
-          case 'category':
-             if ( is_null($email->getCategory()) ) :
+            case 'name':
+                $utm_campaign = $email->getName();
+                break;
+            case 'subject':
                 $utm_campaign = $email->getSubject();
-             else:
-                $utm_campaign = $email->getCategory()->getTitle();
-             endif;
-            break;
+                break;
+            case 'category':
+                if (is_null($email->getCategory())) {
+                    $utm_campaign = $email->getSubject();
+                } else {
+                    $utm_campaign = $email->getCategory()->getTitle();
+                }
+                break;
         endswitch;
 
 
         switch ($utm_content_type) :
-          case 'name':
-            $utm_content = $email->getName();
-            break;
-          case 'subject':
-            $utm_content = $email->getSubject();
-            break;
-          case 'category':
-             if ( is_null($email->getCategory()) ) :
+            case 'name':
+                $utm_content = $email->getName();
+                break;
+            case 'subject':
                 $utm_content = $email->getSubject();
-             else:
-                $utm_content = $email->getCategory()->getTitle();
-             endif;
-            break;
+                break;
+            case 'category':
+                if (is_null($email->getCategory())) {
+                    $utm_content = $email->getSubject();
+                } else {
+                    $utm_content = $email->getCategory()->getTitle();
+                }
+                break;
         endswitch;
 
 
@@ -106,16 +114,16 @@ class EmailSubscriber extends CommonSubscriber {
             $utm_content = strtolower($str_content);
         }
 
-        $content = $this->add_analytics_tracking_to_urls($content, $utm_source, $utm_campaign, $utm_content, $utm_medium);
-        $content = $this->add_analytics_tracking_to_urls2($content, $utm_source, $utm_campaign, $utm_content, $utm_medium);
+        $content = $this->addAnalyticsTrackingToUrls($content, $utm_source, $utm_campaign, $utm_content, $utm_medium);
+        $content = $this->addAnalyticsTrackingToUrls2($content, $utm_source, $utm_campaign, $utm_content, $utm_medium);
         $event->setContent($content);
     }
 
-    protected function add_analytics_tracking_to_urls2($body, $source, $campaign, $utem_content, $medium = 'email') {
-        return preg_replace_callback('#(<v:roundrect.*?href=")([^"]*)("[^>]*?>)#i', function($match) use ($source, $campaign, $utm_content, $medium) {
+    protected function addAnalyticsTrackingToUrls2($body, $source, $campaign, $utem_content, $medium = 'email')
+    {
+        return preg_replace_callback('#(<v:roundrect.*?href=")([^"]*)("[^>]*?>)#i', function ($match) use ($source, $campaign, $utm_content, $medium) {
             $url = $match[2];
             if (strpos($url, 'utm_source') === false && strpos($url, 'http') !== false) {
-
                 $add_to_url = '';
                 if (strpos($url, '#') !== false) {
                     $url_array = explode("#", $url);
@@ -131,17 +139,17 @@ class EmailSubscriber extends CommonSubscriber {
                     $url .= '&amp;';
                 }
                 $url .= 'utm_source=' . $source . '&amp;utm_medium=' . $medium . '&amp;utm_campaign=' . urlencode($campaign) . '&amp;utm_content=' . $utm_content;
-                $url .=$add_to_url;
+                $url .= $add_to_url;
             }
             return $match[1] . $url . $match[3];
         }, $body);
     }
 
-    protected function add_analytics_tracking_to_urls($body, $source, $campaign, $utm_content, $medium = 'email') {
-        return preg_replace_callback('#(<a.*?href=")([^"]*)("[^>]*?>)#i', function($match) use ($source, $campaign, $utm_content, $medium) {
+    protected function addAnalyticsTrackingToUrls($body, $source, $campaign, $utm_content, $medium = 'email')
+    {
+        return preg_replace_callback('#(<a.*?href=")([^"]*)("[^>]*?>)#i', function ($match) use ($source, $campaign, $utm_content, $medium) {
             $url = $match[2];
             if (strpos($url, 'utm_source') === false && strpos($url, 'http') !== false) {
-
                 $add_to_url = '';
                 if (strpos($url, '#') !== false) {
                     $url_array = explode("#", $url);
@@ -157,7 +165,7 @@ class EmailSubscriber extends CommonSubscriber {
                     $url .= '&amp;';
                 }
                 $url .= 'utm_source=' . $source . '&amp;utm_medium=' . $medium . '&amp;utm_campaign=' . urlencode($campaign) . '&amp;utm_content=' . $utm_content;
-                $url .=$add_to_url;
+                $url .= $add_to_url;
             }
             return $match[1] . $url . $match[3];
         }, $body);
