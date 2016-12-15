@@ -117,7 +117,7 @@ class EmailSubscriber extends CommonSubscriber
         $event->setContent($content);
     }
 
-    protected function addAnalyticsTrackingToUrls2($body, $source, $campaign, $utem_content, $medium = 'email')
+    protected function addAnalyticsTrackingToUrls2($body, $source, $campaign, $utm_content, $medium = 'email')
     {
         return preg_replace_callback('#(<v:roundrect.*?href=")([^"]*)("[^>]*?>)#i', function ($match) use ($source, $campaign, $utm_content, $medium) {
             $url = $match[2];
